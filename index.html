@@ -459,6 +459,24 @@
   }
   footer .logo{font-size:1.1rem;}
 
+  /* ---------- Buy button ---------- */
+  .buy-btn{
+    display:block;
+    width:100%;
+    margin-top:16px;
+    padding:13px;
+    background:var(--ink);
+    color:var(--white);
+    border:none;
+    font-family:'Jost', sans-serif;
+    font-size:0.82rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:opacity 0.3s ease;
+  }
+  .buy-btn:hover{opacity:0.78;}
+
   /* ---------- Focus visibility ---------- */
   a:focus-visible, button:focus-visible{
     outline:2px solid var(--sky-3);
@@ -588,6 +606,7 @@
         <h3>White Oud</h3>
         <p>Pure oud blended with a whisper of sandalwood — deep, smoky and long-lasting, naturally sourced without synthetic amplifiers.</p>
         <div class="price"><span>₹150</span><a href="#contact">Enquire</a></div>
+        <button class="buy-btn" onclick="buyNow('White Oud 6ml', 150)">Buy Now — ₹150</button>
       </div>
     </div>
     <div class="card">
@@ -597,6 +616,7 @@
         <h3>Black Oud</h3>
         <p>Crafted from rich wooden oil, bold and earthy with a deep, long-lasting trail — naturally sourced without synthetic amplifiers.</p>
         <div class="price"><span>₹200</span><a href="#contact">Enquire</a></div>
+        <button class="buy-btn" onclick="buyNow('Black Oud 6ml', 200)">Buy Now — ₹200</button>
       </div>
     </div>
   </div>
@@ -655,5 +675,53 @@
   <div>© 2026 ITR Fragrance. Made in India. Ships within India only.</div>
 </footer>
 
+<script>
+  // Load Razorpay script dynamically
+  function loadRazorpay() {
+    return new Promise((resolve, reject) => {
+      if (window.Razorpay) { resolve(); return; }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = resolve;
+      script.onerror = reject;
+      document.body.appendChild(script);
+    });
+  }
+
+  const RAZORPAY_KEY = 'rzp_test_TBHFJHDupy2znw';
+
+  async function buyNow(productName, amountInRupees) {
+    try {
+      await loadRazorpay();
+    } catch (e) {
+      alert('❌ Could not load payment system. Please check your internet connection and try again.');
+      return;
+    }
+
+    const options = {
+      key: RAZORPAY_KEY,
+      amount: amountInRupees * 100,
+      currency: 'INR',
+      name: 'ITR Fragrance',
+      description: productName,
+      handler: function(response) {
+        alert('✅ Payment Successful!\nPayment ID: ' + response.razorpay_payment_id + '\nThank you for purchasing ' + productName + '!');
+      },
+      prefill: { name: '', email: '', contact: '' },
+      notes: { product: productName },
+      theme: { color: '#0b0b0b' },
+      modal: {
+        ondismiss: function() {
+          console.log('Payment cancelled');
+        }
+      }
+    };
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function(response) {
+      alert('❌ Payment failed: ' + response.error.description);
+    });
+    rzp.open();
+  }
+</script>
 </body>
 </html>
